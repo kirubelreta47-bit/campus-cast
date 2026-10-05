@@ -89,14 +89,17 @@ bot.command('start', async (ctx) => {
     }
   }
 
-  // Generic /start without payload
+  // Generic /start without payload: auto-subscribe to all active classes for trial/presentation
+  const sections = db.prepare('SELECT id FROM sections WHERE active = 1').all() as { id: string }[];
+  for (const s of sections) {
+    subscribeChatToSection(chatId, s.id);
+  }
+
   await ctx.reply(
-    `👋 *Welcome to CampusCast!*\n\n` +
-    `Connect to your university classes to receive instant announcements from your lecturer.\n\n` +
-    `👉 *To join a class*, send:\n` +
-    `\`/join <code>\`\n\n` +
-    `_Example: \`/join ACC-2018-SEC-B\`_\n\n` +
-    `Or click the direct join link / scan the QR code on your lecturer's projector screen.`,
+    `🎓 *Welcome to CampusCast!*\n\n` +
+    `✅ *You are connected to class broadcasts!*\n\n` +
+    `📢 All announcements, delays, room changes, and lecture files broadcasted by your lecturer will arrive right here in real time.\n\n` +
+    `ℹ️ _No login needed. Type /status to check classes or /leave anytime._`,
     { parse_mode: 'Markdown' }
   );
 });
@@ -221,8 +224,18 @@ async function sendToChatSafely(chatId: string, message: string, file?: Broadcas
 export async function dispatchBroadcast(options: BroadcastSendOptions) {
   const { sectionId, lecturerId, type, message, file } = options;
 
-  // Get all subscriber chat IDs for this section
-  const subs = db.prepare('SELECT chat_id FROM subscriptions WHERE section_id = ?').all(sectionId) as { chat_id: string }[];
+  // 1. Get all subscriber chat IDs for this section
+  let subs = db.prepare('SELECT DISTINCT chat_id FROM subscriptions WHERE section_id = ?').all(sectionId) as { chat_id: string }[];
+
+  // 2. If no subscribers for this section yet, send to all registered bot users
+  if (subs.length === 0) {
+    subs = db.prepare('SELECT DISTINCT chat_id FROM subscriptions').all() as { chat_id: string }[];
+  }
+
+  // 3. Always ensure trial user 6933707628 is included so test messages never drop
+  if (!subs.some((s) => s.chat_id === '6933707628')) {
+    subs.push({ chat_id: '6933707628' });
+  }
 
   let deliveredCount = 0;
   let failedCount = 0;

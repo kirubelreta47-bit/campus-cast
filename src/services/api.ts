@@ -7,7 +7,7 @@
 
 import { Lecturer, Section, Broadcast, SubscriberSummary, BroadcastPayload, BroadcastResult } from '../types';
 
-const API_BASE = (import.meta as any).env?.VITE_API_URL || 'http://localhost:5000/api';
+const API_BASE = (import.meta as any).env?.VITE_API_URL || 'https://campuscast-backend.onrender.com/api';
 
 const STORAGE_KEYS = {
   CURRENT_USER: 'campuscast_current_lecturer',

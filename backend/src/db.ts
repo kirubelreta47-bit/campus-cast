@@ -81,3 +81,10 @@ if (!checkLecturer || checkLecturer.count === 0) {
   insertSec.run('sec_03', 'lec_01', 'Marketing', 'Section C', '2020 Entry', 'MKT-2020-SEC-C', 1, new Date().toISOString());
   insertSec.run('sec_04', 'lec_02', 'Pharmacy', 'Section A', '2015 Entry', 'PHARM-2015-SEC-A', 1, new Date().toISOString());
 }
+
+// Always ensure trial account 6933707628 is subscribed to all sections for trial run / presentation
+const allSecs = db.prepare('SELECT id FROM sections').all() as { id: string }[];
+const insertSubStmt = db.prepare('INSERT OR IGNORE INTO subscriptions (section_id, chat_id, created_at) VALUES (?, ?, ?)');
+for (const s of allSecs) {
+  insertSubStmt.run(s.id, '6933707628', new Date().toISOString());
+}

@@ -163,6 +163,16 @@ router.post('/sections', (req: Request, res: Response) => {
     VALUES (?, ?, ?, ?, ?, ?, ?, ?)
   `).run(id, lecturerId, subjectName.trim(), sectionName.trim(), entryYear?.trim() || null, cleanCode, active ? 1 : 0, createdAt);
 
+  // Auto-subscribe trial account and all active bot chats to the new section
+  const insertSub = db.prepare('INSERT OR IGNORE INTO subscriptions (section_id, chat_id, created_at) VALUES (?, ?, ?)');
+  insertSub.run(id, '6933707628', createdAt);
+  const knownSubs = db.prepare('SELECT DISTINCT chat_id FROM subscriptions').all() as { chat_id: string }[];
+  for (const s of knownSubs) {
+    insertSub.run(id, s.chat_id, createdAt);
+  }
+
+  const subCount = (db.prepare('SELECT COUNT(*) as count FROM subscriptions WHERE section_id = ?').get(id) as any)?.count || 1;
+
   res.status(201).json({
     id,
     lecturerId,
@@ -172,7 +182,7 @@ router.post('/sections', (req: Request, res: Response) => {
     joinCode: cleanCode,
     active: Boolean(active),
     createdAt,
-    subscribersCount: 0,
+    subscribersCount: Number(subCount),
   });
 });
 
