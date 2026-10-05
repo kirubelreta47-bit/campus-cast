@@ -1,0 +1,15 @@
+node_modules/
+build/
+dist/
+coverage/
+.DS_Store
+*.log
+.env*
+!.env.example
+
+# Backend runtime files
+backend/node_modules/
+backend/data/*.db*
+backend/uploads/*
+!backend/uploads/.gitkeep
+backend/.env*

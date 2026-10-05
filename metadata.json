@@ -1,0 +1,8 @@
+{
+  "name": "CampusCast - Lecturer Broadcast Dashboard",
+  "description": "Mobile-first lecturer dashboard for broadcasting instant class announcements and files to students via Telegram.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
