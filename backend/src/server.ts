@@ -46,6 +46,18 @@ app.get('/health', (_req, res) => {
   });
 });
 
+// Serve frontend dashboard directly from Express if built
+const distDir = path.resolve(BACKEND_ROOT, '..', 'dist');
+if (fs.existsSync(distDir)) {
+  app.use(express.static(distDir));
+  app.get('*', (req, res, next) => {
+    if (req.path.startsWith('/api') || req.path.startsWith('/uploads') || req.path === '/health') {
+      return next();
+    }
+    res.sendFile(path.join(distDir, 'index.html'));
+  });
+}
+
 // Start Express server and Telegram bot polling
 app.listen(PORT, () => {
   console.log(`🚀 [CampusCast Backend] Running on http://localhost:${PORT}`);

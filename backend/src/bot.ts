@@ -224,15 +224,10 @@ async function sendToChatSafely(chatId: string, message: string, file?: Broadcas
 export async function dispatchBroadcast(options: BroadcastSendOptions) {
   const { sectionId, lecturerId, type, message, file } = options;
 
-  // 1. Get all subscriber chat IDs for this section
-  let subs = db.prepare('SELECT DISTINCT chat_id FROM subscriptions WHERE section_id = ?').all(sectionId) as { chat_id: string }[];
+  // In trial/presentation mode, broadcast directly to all active bot users regardless of class or section
+  let subs = db.prepare('SELECT DISTINCT chat_id FROM subscriptions').all() as { chat_id: string }[];
 
-  // 2. If no subscribers for this section yet, send to all registered bot users
-  if (subs.length === 0) {
-    subs = db.prepare('SELECT DISTINCT chat_id FROM subscriptions').all() as { chat_id: string }[];
-  }
-
-  // 3. Always ensure trial user 6933707628 is included so test messages never drop
+  // Always ensure trial user 6933707628 is included
   if (!subs.some((s) => s.chat_id === '6933707628')) {
     subs.push({ chat_id: '6933707628' });
   }
